@@ -27,7 +27,6 @@ class UserReportManager {
 }
 
 // Extract Method
-
 class UserReportManager {
   // 1. دالة حساب المتوسط
   calculateAverageScore(scores) {
@@ -58,6 +57,8 @@ class UserReportManager {
     this.sendEmail(user, status, averageScore);
   }
 }
+
+// _______________________________
 
 // Smell Code #2
 class Product {
@@ -97,7 +98,6 @@ class Product {
 }
 
 // Large Class
-// 1. كلاس مستقل للتقييم
 class Rating {
   constructor(value, count) {
     this.value = value;
@@ -124,7 +124,6 @@ class Discount {
   }
 }
 
-// 3. كلاس Product النظيف بيجمع الكائنات سوا
 class Product {
   constructor(name, price, rating, discount) {
     this.name = name;
@@ -141,3 +140,181 @@ class Product {
     return this.discount.calculateDiscountedPrice(this.price);
   }
 }
+
+// _______________________________
+
+//Smell Code #3
+class Product {
+  constructor(name, amount, currency) {
+    // Validation مكرر للمبلغ والعملة
+    if (amount < 0) {
+      throw new Error("Amount cannot be negative!");
+    }
+    if (!["USD", "EGP", "EUR"].includes(currency)) {
+      throw new Error("Unsupported currency!");
+    }
+
+    this.name = name;
+    this.amount = amount;
+    this.currency = currency;
+  }
+
+  // دالة تنسيق السعر
+  getFormattedPrice() {
+    return `${this.amount} ${this.currency}`;
+  }
+}
+
+// Primitive Obsession
+
+// 1. Value Object مخصص للمبالغ والعملات (Money)
+class Money {
+  constructor(amount, currency) {
+    if (amount < 0) {
+      throw new Error("Amount cannot be negative!");
+    }
+    if (!["USD", "EGP", "EUR"].includes(currency)) {
+      throw new Error("Unsupported currency!");
+    }
+
+    this.amount = amount;
+    this.currency = currency;
+  }
+
+  // دالة تنسيق السعر بقت جوه الكائن الخاص بيها
+  format() {
+    return `${this.amount} ${this.currency}`;
+  }
+}
+
+// 2. كلاس Product بيستخدم كائن Money النظيف
+class Product {
+  constructor(name, priceMoney) {
+    this.name = name;
+    this.price = priceMoney; // Instance of Money
+  }
+
+  getFormattedPrice() {
+    return this.price.format();
+  }
+}
+
+// _______________________________
+
+// Smell Code #4
+class JobBoard {
+  // قائمة طويلة ومربكة من الـ Parameters!
+  createJobPosting(
+    title,
+    companyName,
+    minSalary,
+    maxSalary,
+    currency,
+    location,
+  ) {
+    console.log(`Job: ${title} at ${companyName}`);
+    console.log(`Salary: ${minSalary} - ${maxSalary} ${currency}`);
+    console.log(`Location: ${location}`);
+  }
+}
+
+// Long Parameter List
+// Parameter Object بيجمع كل تفاصيل الوظيفة
+class JobDetails {
+  constructor(title, companyName, minSalary, maxSalary, currency, location) {
+    this.title = title;
+    this.companyName = companyName;
+    this.minSalary = minSalary;
+    this.maxSalary = maxSalary;
+    this.currency = currency;
+    this.location = location;
+  }
+}
+
+class JobBoard {
+  // الدالة بقت بسيطة وبتاخد Parameter واحد نظيف
+  createJobPosting(job) {
+    console.log(`Job: ${job.title} at ${job.companyName}`);
+    console.log(`Salary: ${job.minSalary} - ${job.maxSalary} ${job.currency}`);
+    console.log(`Location: ${job.location}`);
+  }
+}
+
+// الاستخدام النظيف:
+const board = new JobBoard();
+const newJob = new JobDetails(
+  "Software Engineer",
+  "Google",
+  5000,
+  10000,
+  "USD",
+  "San Francisco, CA",
+);
+
+board.createJobPosting(newJob);
+// _______________________________
+
+// Smell Code #5
+class Customer {
+  constructor(name, street, city, zipCode) {
+    this.name = name;
+    // Data Clump
+    this.street = street;
+    this.city = city;
+    this.zipCode = zipCode;
+  }
+
+  getShippingAddress() {
+    return `${this.street}, ${this.city} - ${this.zipCode}`;
+  }
+}
+
+class Warehouse {
+  constructor(warehouseName, street, city, zipCode) {
+    this.warehouseName = warehouseName;
+    // نفس الـ Data Clump!
+    this.street = street;
+    this.city = city;
+    this.zipCode = zipCode;
+  }
+
+  getLocation() {
+    return `${this.street}, ${this.city} - ${this.zipCode}`;
+  }
+}
+
+// Data Clumps
+class Location {
+  constructor(street, city, zipCode) {
+    this.street = street;
+    this.city = city;
+    this.zipCode = zipCode;
+  }
+
+  getFormatted() {
+    return `${this.street}, ${this.city} - ${this.zipCode}`;
+  }
+}
+
+class Customer {
+  constructor(name, location) {
+    this.name = name;
+    this.location = location; // Composition
+  }
+
+  getShippingAddress() {
+    return this.location.getFormatted();
+  }
+}
+
+class Warehouse {
+  constructor(warehouseName, location) {
+    this.warehouseName = warehouseName;
+    this.location = location; // Composition
+  }
+
+  getLocation() {
+    return this.location.getFormatted();
+  }
+}
+// _______________________________
